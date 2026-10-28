@@ -77,6 +77,7 @@ In addition to the explicit exceptions above, the `GlobalExceptionHandler` autom
 
 - `MethodArgumentNotValidException` (mapped to 400 with `FieldErrorDetail`)
 - `ConstraintViolationException` (mapped to 400 with `FieldErrorDetail`)
+- `HandlerMethodValidationException` (mapped to 400 with `FieldErrorDetail`) - constraints on controller method parameters such as `@RequestParam @Min(1) int size`; no `@Validated` needed on the controller
 - `HttpMessageNotReadableException` (mapped to 400)
 - `MissingServletRequestParameterException` (mapped to 400)
 - `MethodArgumentTypeMismatchException` (mapped to 400)

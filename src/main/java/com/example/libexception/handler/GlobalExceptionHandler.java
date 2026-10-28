@@ -12,6 +12,7 @@ import jakarta.ws.rs.WebApplicationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,10 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.List;
@@ -85,6 +89,32 @@ public class GlobalExceptionHandler {
                 .toList();
 
         log.warn("Constraint violation on {}: {}", request.getRequestURI(), fieldErrors);
+        return build(HttpStatus.BAD_REQUEST, CommonErrorCode.VALIDATION_FAILED.getCode(),
+                CommonErrorCode.VALIDATION_FAILED.getDefaultMessage(), request, fieldErrors);
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorResponse> handleHandlerMethodValidation(
+            HandlerMethodValidationException ex, HttpServletRequest request) {
+
+        if (ex.isForReturnValue()) {
+            return handleUnexpected(ex, request);
+        }
+
+        List<FieldErrorDetail> fieldErrors = ex.getParameterValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream()
+                        .map(error -> FieldErrorDetail.builder()
+                                .field(error instanceof FieldError fe
+                                        ? fe.getField()
+                                        : requestParameterName(result.getMethodParameter()))
+                                .message(error.getDefaultMessage())
+                                .rejectedValue(error instanceof FieldError fe
+                                        ? fe.getRejectedValue()
+                                        : result.getArgument())
+                                .build()))
+                .toList();
+
+        log.warn("Method parameter validation failed on {}: {}", request.getRequestURI(), fieldErrors);
         return build(HttpStatus.BAD_REQUEST, CommonErrorCode.VALIDATION_FAILED.getCode(),
                 CommonErrorCode.VALIDATION_FAILED.getDefaultMessage(), request, fieldErrors);
     }
@@ -162,6 +192,29 @@ public class GlobalExceptionHandler {
         if (status.value() >= minimumReportableStatus) {
             errorReporter.report(ex);
         }
+    }
+
+    /**
+     * The name the client used: the explicit {@code @RequestParam}/{@code @PathVariable} name when
+     * given, otherwise the Java parameter name (available when compiled with {@code -parameters},
+     * which the Spring Boot Gradle plugin enables).
+     */
+    private String requestParameterName(MethodParameter parameter) {
+        RequestParam requestParam = parameter.getParameterAnnotation(RequestParam.class);
+        if (requestParam != null) {
+            String name = requestParam.name().isEmpty() ? requestParam.value() : requestParam.name();
+            if (!name.isEmpty()) {
+                return name;
+            }
+        }
+        PathVariable pathVariable = parameter.getParameterAnnotation(PathVariable.class);
+        if (pathVariable != null) {
+            String name = pathVariable.name().isEmpty() ? pathVariable.value() : pathVariable.name();
+            if (!name.isEmpty()) {
+                return name;
+            }
+        }
+        return parameter.getParameterName();
     }
 
     private FieldErrorDetail toFieldErrorDetail(FieldError fe) {
