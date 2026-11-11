@@ -25,6 +25,10 @@ dependencies {
     compileOnly 'org.springframework.boot:spring-boot-starter-webmvc'
     compileOnly 'org.springframework.boot:spring-boot-starter-validation'
     compileOnly 'org.springframework.boot:spring-boot-autoconfigure'
+    // Feign is optional: the Feign ErrorDecoder auto-config only activates when the
+    // consuming service brings its own (compatible) feign-core. Version aligned with
+    // Spring Cloud 2025.1.x, which ships feign 13.6.
+    compileOnly 'io.github.openfeign:feign-core:13.6'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
