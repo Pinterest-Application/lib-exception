@@ -1,1 +1,2 @@
 com.example.libexception.autoconfigure.LibExceptionAutoConfiguration
+com.example.libexception.autoconfigure.LibExceptionFeignAutoConfiguration

@@ -5,6 +5,7 @@ import com.example.libexception.handler.GlobalExceptionHandler;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
+import lombok.extern.jackson.Jacksonized;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -18,6 +19,7 @@ import java.util.List;
  */
 @Getter
 @Builder
+@Jacksonized
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
 

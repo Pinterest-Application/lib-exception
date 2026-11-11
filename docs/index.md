@@ -8,6 +8,7 @@
 - **Auto-Configured GlobalExceptionHandler**: Seamlessly catches standard Spring exceptions (like validation, bad request) and translates them into the standard model. No manual `@ComponentScan` or `@Import` is required.
 - **Pre-built HTTP Exceptions**: Extendable `BaseException` and ready-to-use HTTP exceptions (`NotFoundException`, `BadRequestException`, etc.).
 - **Built-in Error Reporting**: Out-of-the-box integration with Sentry-protocol bug trackers (Sentry, Bugsink, GlitchTip) to automatically report unexpected errors.
+- **Feign Error Propagation**: A deliberate downstream error (`404 MEDIA_NOT_FOUND`) reaches your caller as that same error instead of being flattened into a `500`.
 
 ## Getting Started
 
@@ -39,4 +40,5 @@ When a service throws an unhandled exception or a `BaseException`, the `GlobalEx
 - [Configuration](./configuration.md)
 - [Exceptions](./exceptions.md)
 - [Error Reporting](./error-reporting.md)
+- [Feign Error Propagation](./feign.md)
 - [Trace ID Setup](./trace-id.md)
